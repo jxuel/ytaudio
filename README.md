@@ -16,7 +16,11 @@ your_paht/ytaudio/build$make
   ```
 
 ## Run
-Open exeutable file `ytaudio`
+Open exeutable file `ytaudio`.
+
+The playlist url must contain `list` field and be valid to play video in a webbrowser.
+
+URL example : `https://www.youtube.com/watch?v=83xBPCw5hh4&list=RDCLAK5uy_kmPRjHDECIcuVwnKsx2Ng7fyNgFKWNJFs`
 
 ## Screenshot
 <img src="screenshot.png" width="600">

@@ -5,6 +5,7 @@ import json
 import socket
 import os
 import logging
+import sys
 from urllib.parse import unquote
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
@@ -15,6 +16,10 @@ Connect to player and set logfile
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect(("127.0.0.1", 9342))
 sock.send(b'[INIT]python connect')
+
+'''
+Log setting
+'''
 dir_path = os.path.dirname(os.path.realpath(__file__))
 logname = os.path.join(dir_path, "YTThread")
 logging.basicConfig(filename=logname,
@@ -24,6 +29,20 @@ logging.basicConfig(filename=logname,
                     level=logging.DEBUG)
 
 logging.info("Module Loaded")
+
+logger = logging.getLogger(__name__)
+handler = logging.StreamHandler(stream=sys.stdout)
+logger.addHandler(handler)
+
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+sys.excepthook = handle_exception
 
 
 class Sig(object):
@@ -54,7 +73,6 @@ class Sig(object):
 
 def getlists(url):
     sock.send(b'woker started')
-
     logging.info("Worker Started")
 
     """
@@ -89,7 +107,7 @@ def getlists(url):
         deciphierProgess = re.search('\{a=a\.split\(""\);(.*?);return a\.join\(""\)\};', baseJS.text)
         deciphierFunctions = re.search('var %s=\{([\s|\S]*?)\};' % deciphierProgess[1].split(";")[0][:2], baseJS.text)
         funs = deciphierFunctions[1]
-        trans = [':', "function", "var", "{", "}"]
+        trans = [':', "function", "var", "},", "{", "}"]
         for c in trans:
             n = ''
             if c == "(":
@@ -108,7 +126,7 @@ def getlists(url):
         progress = re.findall('\.([\S]{2})\(a,(.*?)\)', deciphierProgess[0])
 
     # Get all videoID
-    listId = re.search('&list=(.*?)&', url)[1]
+    listId = re.search('list=(.*?)(&|$)', url)[1]
     ids = set(re.findall('"videoId":"(.{11})","playlistId":"%s"' % listId, res.text))
     if len(ids) == 0:
         return -1
@@ -140,15 +158,17 @@ def getlists(url):
                     #print("DECIPHER RUNING: ", line)
                     exec(line)
                 del data[0]
+
                 data.append("sig=%s" % ''.join(sData.strList))
                 urlr = '&'.join(data)
                 count = count + 1
                 l = sock.recv(1024)
                 sock.send(urlr.encode())
         except Exception as e:
+            logging.exception(e)
             sock.send(vid.encode() + b'FAILED')
             continue
     return (count, total)
 
 if __name__ == '__main__':
-    getlists("https://www.youtube.com/watch?v=Uh9nPdIhPEY&list=RDUh9nPdIhPEY&index=1")
+    getlists("https://www.youtube.com/watch?v=83xBPCw5hh4&list=RDCLAK5uy_kmPRjHDECIcuVwnKsx2Ng7fyNgFKWNJFs")
