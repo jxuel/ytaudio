@@ -10,9 +10,9 @@ Only play audio form all videos in a playlist.
 ## Build
 
   ```
-your_paht/ytaudio$mkdir build && cd build
-your_paht/ytaudio/build$cmake ..
-your_paht/ytaudio/build$make
+your_path/ytaudio$mkdir build && cd build
+your_path/ytaudio/build$cmake ..
+your_path/ytaudio/build$make
   ```
 
 ## Run
