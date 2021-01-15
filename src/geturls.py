@@ -137,10 +137,17 @@ def getlists(url):
             res = s.get("https://www.youtube.com/get_video_info?video_id=%s&el=detailpage" % vid)
             if res.status_code != 200:
                 continue
-            player_response = unquote(unquote(re.search('player_response=(.*?)&', res.text)[1]))
-            streamingData = json.loads(player_response)['streamingData']
-            stream = streamingData['formats'][0]
-            data = stream['signatureCipher'].split('&')
+            '''OLD_PROCESS_ALL_DATA
+            #player_response = unquote(unquote(re.search('player_response=(.*?)&', res.text)[1]))
+            #print(player_response)
+            #streamingData = json.loads(player_response)['streamingData']
+            #stream = streamingData['formats'][0]
+            #data = stream['signatureCipher'].split('&')
+            '''
+            # only streamingData signatureCipher
+            data = re.search('signatureCipher":"(.*?)"', unquote(unquote(res.text))
+                             )[1].replace("\\u0026", "&").split('&')
+            print(data)
             if data[1] == 'sp=sig':
                 del data[1]
                 data[1] = data[1].replace('url=', '')
@@ -162,10 +169,14 @@ def getlists(url):
                 data.append("sig=%s" % ''.join(sData.strList))
                 urlr = '&'.join(data)
                 count = count + 1
-                l = sock.recv(1024)
+                #print(urlr.encode(), "\n")
+                # os._exit(1)
+
+                #l = sock.recv(1024)
                 sock.send(urlr.encode())
         except Exception as e:
             logging.exception(e)
+            # os._exit(1)
             sock.send(vid.encode() + b'FAILED')
             continue
     return (count, total)
